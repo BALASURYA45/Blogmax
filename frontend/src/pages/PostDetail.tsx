@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import RequireAuthModal from '../components/RequireAuthModal';
+import SafeImage from '../components/SafeImage';
 import '../App.css';
 
 const PostDetail = () => {
@@ -29,6 +30,7 @@ const PostDetail = () => {
   });
 
   const nextPath = `${location.pathname}${location.search}`;
+  const resolvePostImage = (p: any) => p?.featuredImage || p?.image || '';
   const requireAuth = (title: string, description: string) => {
     setAuthPrompt({ open: true, title, description });
   };
@@ -223,7 +225,7 @@ const PostDetail = () => {
         <meta name="description" content={post.excerpt || post.summary} />
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={post.excerpt || post.summary} />
-        <meta property="og:image" content={post.featuredImage} />
+        <meta property="og:image" content={resolvePostImage(post)} />
         <meta property="og:url" content={window.location.href} />
         <meta property="og:type" content="article" />
         <meta property="article:author" content={post.author?.username} />
@@ -231,7 +233,7 @@ const PostDetail = () => {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={post.title} />
         <meta name="twitter:description" content={post.excerpt || post.summary} />
-        <meta name="twitter:image" content={post.featuredImage} />
+        <meta name="twitter:image" content={resolvePostImage(post)} />
       </Helmet>
       <div 
         style={{ 
@@ -246,7 +248,7 @@ const PostDetail = () => {
         }} 
       />
       <header className="post-detail-header">
-        <img src={post.featuredImage} alt={post.title} className="header-bg-img" />
+        <SafeImage src={resolvePostImage(post)} alt={post.title} className="header-bg-img" />
         <div className="header-overlay"></div>
         <div className="container header-content">
           <motion.div 
@@ -392,39 +394,6 @@ const PostDetail = () => {
           initial={{ opacity: 0 }} 
           whileInView={{ opacity: 1 }} 
           viewport={{ once: true }}
-          className="related-section"
-          style={{ marginTop: '80px', paddingTop: '80px', borderTop: '1px solid var(--border-color)' }}
-        >
-          <h3 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '40px' }}>Related Stories</h3>
-          <div className="posts-grid">
-            {relatedPosts.map((rp) => (
-              <Link to={`/post/${rp.slug}`} key={rp._id} className="post-card-link">
-                <div className="post-card">
-                  <div className="post-card-image" style={{ height: '200px' }}>
-                    <img src={rp.featuredImage} alt={rp.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </div>
-                  <div className="post-card-content" style={{ padding: '24px' }}>
-                    <span className="badge" style={{ fontSize: '10px' }}>{rp.category?.name}</span>
-                    <h4 style={{ fontSize: '18px', margin: '12px 0' }}>{rp.title}</h4>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      <span>{rp.author?.username}</span>
-                      <span>•</span>
-                      <span>{new Date(rp.createdAt).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-            {relatedPosts.length === 0 && (
-              <p style={{ color: 'var(--text-secondary)' }}>No related stories found.</p>
-            )}
-          </div>
-        </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0 }} 
-          whileInView={{ opacity: 1 }} 
-          viewport={{ once: true }}
           className="comments-section"
         >
           <h3 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '24px' }}>Comments ({comments.length})</h3>
@@ -478,6 +447,44 @@ const PostDetail = () => {
                 onReplySubmit={handleCommentSubmit}
               />
             ))}
+          </div>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          whileInView={{ opacity: 1 }} 
+          viewport={{ once: true }}
+          className="related-section"
+          style={{ marginTop: '80px', paddingTop: '80px', borderTop: '1px solid var(--border-color)' }}
+        >
+          <h3 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '40px' }}>Related Stories</h3>
+          <div className="posts-grid">
+            {relatedPosts.map((rp) => (
+              <Link to={`/post/${rp.slug}`} key={rp._id} className="post-card-link">
+                <div className="post-card">
+                  <div className="post-card-image" style={{ height: '200px' }}>
+                    <SafeImage
+                      src={resolvePostImage(rp)}
+                      alt={rp.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      fallback={<div className="img-fallback">No image</div>}
+                    />
+                  </div>
+                  <div className="post-card-content" style={{ padding: '24px' }}>
+                    <span className="badge" style={{ fontSize: '10px' }}>{rp.category?.name}</span>
+                    <h4 style={{ fontSize: '18px', margin: '12px 0' }}>{rp.title}</h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      <span>{rp.author?.username}</span>
+                      <span>•</span>
+                      <span>{new Date(rp.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+            {relatedPosts.length === 0 && (
+              <p style={{ color: 'var(--text-secondary)' }}>No related stories found.</p>
+            )}
           </div>
         </motion.div>
       </div>

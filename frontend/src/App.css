@@ -295,12 +295,12 @@ body {
 }
 
 .form-input {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-color);
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   padding: 0 20px;
   height: 56px;
-  color: white;
+  color: var(--text-color);
   font-size: 16px;
   transition: var(--transition-smooth);
   appearance: none;
@@ -310,6 +310,10 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.form-input::placeholder {
+  color: var(--text-secondary);
 }
 
 select.form-input {
@@ -324,20 +328,24 @@ select.form-input {
   color: var(--text-color);
 }
 
+[data-theme='white'] select.form-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+}
+
 select.form-input:hover {
   background-color: var(--surface-hover);
   border-color: var(--primary);
 }
 
 select.form-input option {
-  background-color: #1a1a1e;
-  color: #ffffff;
+  background-color: var(--surface-color);
+  color: var(--text-color);
   padding: 15px;
 }
 
 .form-input:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-hover);
   border-color: var(--primary);
   box-shadow: 0 0 0 4px var(--glass-bg);
 }
@@ -380,6 +388,63 @@ select.form-input option {
   color: var(--btn-text);
 }
 
+.nav-icon-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: var(--transition-smooth);
+}
+
+.nav-icon-btn--premium {
+  background: radial-gradient(120% 120% at 30% 20%, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.04) 45%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: var(--text-color);
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(0, 0, 0, 0.25) inset;
+}
+
+[data-theme='white'] .nav-icon-btn--premium {
+  background: radial-gradient(120% 120% at 30% 20%, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.03) 45%, rgba(0, 0, 0, 0.02) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.65) inset;
+}
+
+.nav-icon-btn--premium:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary);
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(0, 0, 0, 0.25) inset;
+}
+
+.nav-icon-btn--gold {
+  color: #fbbf24;
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(0, 0, 0, 0.25) inset,
+    0 0 18px rgba(251, 191, 36, 0.16);
+}
+
+[data-theme='white'] .nav-icon-btn--gold {
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.65) inset,
+    0 0 18px rgba(251, 191, 36, 0.12);
+}
+
+.nav-icon-btn--gold:hover {
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.45),
+    0 0 22px rgba(251, 191, 36, 0.26);
+}
+
 .btn-logout {
   background: transparent;
   color: var(--text-color);
@@ -393,6 +458,18 @@ select.form-input option {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.btn-logout--premium {
+  background: radial-gradient(120% 120% at 30% 20%, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.04) 45%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme='white'] .btn-logout--premium {
+  background: radial-gradient(120% 120% at 30% 20%, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.03) 45%, rgba(0, 0, 0, 0.02) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
 }
 
 .btn-logout:hover {
@@ -458,6 +535,23 @@ select.form-input option {
   height: 240px;
   overflow: hidden;
   position: relative;
+}
+
+.img-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(120% 120% at 30% 20%, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+[data-theme='white'] .img-fallback {
+  background: radial-gradient(120% 120% at 30% 20%, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.03) 45%, rgba(0, 0, 0, 0.02) 100%);
 }
 
 .post-img {
@@ -924,6 +1018,56 @@ select.form-input option {
 }
 
 /* Notification Styles */
+.notification-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-color);
+  transition: var(--transition-smooth);
+}
+
+.notification-bell--premium {
+  background: radial-gradient(120% 120% at 30% 20%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 45%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: #fbbf24;
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(0, 0, 0, 0.25) inset,
+    0 0 18px rgba(251, 191, 36, 0.18);
+}
+
+[data-theme='white'] .notification-bell--premium {
+  background: radial-gradient(120% 120% at 30% 20%, rgba(0, 0, 0, 0.10) 0%, rgba(0, 0, 0, 0.04) 45%, rgba(0, 0, 0, 0.02) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.65) inset,
+    0 0 18px rgba(251, 191, 36, 0.14);
+}
+
+.notification-bell--premium:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(251, 191, 36, 0.28);
+}
+
+@keyframes premium-pulse {
+  0% { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45), 0 0 0 0 rgba(251, 191, 36, 0.25); }
+  60% { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45), 0 0 0 10px rgba(251, 191, 36, 0.00); }
+  100% { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45), 0 0 0 0 rgba(251, 191, 36, 0.00); }
+}
+
+.notification-bell--active.notification-bell--premium {
+  animation: premium-pulse 1.6s ease-out infinite;
+}
+
 .notification-badge {
   position: absolute;
   top: -5px;
@@ -1029,4 +1173,3 @@ select.form-input option {
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.1);
 }
-

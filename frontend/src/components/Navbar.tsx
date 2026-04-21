@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { Moon, Sun } from 'lucide-react';
+import { Bell, LogOut, Moon, Plus, Settings, Sun } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
@@ -12,19 +12,9 @@ const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();
   const location = useLocation();
   const unreadCount = notifications.filter(n => !n.read).length;
   const nextPath = `${location.pathname}${location.search}`;
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
-    }
-  };
 
   useEffect(() => {
     if (!user) return;
@@ -76,15 +66,6 @@ const Navbar = () => {
         <Link to="/" className="nav-logo">BlogMax</Link>
         <div className="nav-links">
           <Link to="/">Home</Link>
-          <form onSubmit={handleSearch} className="nav-search">
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="nav-search-input"
-            />
-          </form>
           <button 
             onClick={toggleTheme} 
             className={`theme-toggle ${theme}`}
@@ -96,25 +77,34 @@ const Navbar = () => {
             <>
               <Link
                 to={`/login?next=${encodeURIComponent('/create')}`}
-                className="btn-primary"
-                style={{ padding: '8px 24px', fontSize: '14px', borderRadius: '100px' }}
+                className="nav-icon-btn nav-icon-btn--premium nav-icon-btn--gold"
+                title="Create"
+                aria-label="Create post"
               >
-                Write
+                <Plus size={18} />
               </Link>
               <Link to={`/login?next=${encodeURIComponent(nextPath)}`}>Login</Link>
               <Link to={`/register?next=${encodeURIComponent(nextPath)}`}>Sign Up</Link>
             </>
           ) : (
             <div className="auth-actions">
-              <Link to="/create" className="btn-primary" style={{ padding: '8px 24px', fontSize: '14px', borderRadius: '100px' }}>Write</Link>
+              <Link
+                to="/create"
+                className="nav-icon-btn nav-icon-btn--premium nav-icon-btn--gold"
+                title="Create"
+                aria-label="Create post"
+              >
+                <Plus size={18} />
+              </Link>
               
               <div className="notification-wrapper" style={{ position: 'relative' }}>
                 <button 
                   onClick={toggleNotifications}
-                  className="notification-bell"
-                  style={{ background: 'none', border: 'none', color: 'var(--text-color)', cursor: 'pointer', fontSize: '22px', position: 'relative', display: 'flex', alignItems: 'center' }}
+                  className={`notification-bell notification-bell--premium ${unreadCount > 0 ? 'notification-bell--active' : ''}`}
+                  type="button"
+                  aria-label="Notifications"
                 >
-                  🔔
+                  <Bell size={18} />
                   {unreadCount > 0 && (
                     <span className="notification-badge">{unreadCount}</span>
                   )}
@@ -153,10 +143,17 @@ const Navbar = () => {
               <Link to={`/profile/${user.id || user._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                 <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>{user.username}</span>
               </Link>
-              <Link to="/settings" style={{ textDecoration: 'none', color: 'var(--text-secondary)', fontSize: '18px' }} title="Settings">⚙️</Link>
-              <button onClick={logout} className="btn-logout">
+              <Link
+                to="/settings"
+                className="nav-icon-btn nav-icon-btn--premium"
+                title="Settings"
+                aria-label="Settings"
+              >
+                <Settings size={18} />
+              </Link>
+              <button onClick={logout} className="btn-logout btn-logout--premium" type="button">
                 <span>Logout</span>
-                <span>🚪</span>
+                <LogOut size={16} />
               </button>
             </div>
           )}

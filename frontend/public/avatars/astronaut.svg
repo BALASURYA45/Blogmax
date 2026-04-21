@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="55%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#0b1020"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.65)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.08)"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="60" fill="url(#bg)"/>
+  <circle cx="64" cy="64" r="60" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2"/>
+
+  <g transform="translate(0,2)">
+    <circle cx="64" cy="56" r="28" fill="#0b1220" stroke="rgba(255,255,255,0.28)" stroke-width="3"/>
+    <path d="M44 52c7-10 33-10 40 0" fill="none" stroke="rgba(96,165,250,0.55)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M50 63c4 6 24 6 28 0" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round"/>
+
+    <rect x="40" y="78" width="48" height="26" rx="13" fill="url(#glass)" stroke="rgba(255,255,255,0.22)" stroke-width="2"/>
+    <circle cx="52" cy="91" r="4" fill="#fbbf24"/>
+    <circle cx="64" cy="91" r="4" fill="#22c55e"/>
+    <circle cx="76" cy="91" r="4" fill="#ef4444"/>
+  </g>
+</svg>
+

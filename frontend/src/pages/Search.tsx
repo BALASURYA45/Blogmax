@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../services/api';
+import SafeImage from '../components/SafeImage';
 import '../App.css';
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
+  const resolvePostImage = (post: any) => post?.featuredImage || post?.image || '';
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);
@@ -143,9 +145,14 @@ const Search = () => {
                   transition={{ delay: index * 0.05 }}
                   className="post-card"
                 >
-                  {post.featuredImage && (
+                  {resolvePostImage(post) && (
                     <div className="post-img-wrapper" style={{ height: '180px' }}>
-                      <img src={post.featuredImage} alt={post.title} className="post-img" />
+                      <SafeImage
+                        src={resolvePostImage(post)}
+                        alt={post.title}
+                        className="post-img"
+                        fallback={<div className="img-fallback">No image</div>}
+                      />
                     </div>
                   )}
                   <div className="post-content">

@@ -4,7 +4,18 @@ import { motion } from 'framer-motion';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import RequireAuthModal from '../components/RequireAuthModal';
+import SafeImage from '../components/SafeImage';
 import '../App.css';
+
+const PRESET_AVATARS = [
+  { id: 'astronaut', label: 'Astronaut', url: '/avatars/astronaut.svg' },
+  { id: 'ninja', label: 'Ninja', url: '/avatars/ninja.svg' },
+  { id: 'robot', label: 'Robot', url: '/avatars/robot.svg' },
+  { id: 'wizard', label: 'Wizard', url: '/avatars/wizard.svg' },
+  { id: 'hacker', label: 'Hacker', url: '/avatars/hacker.svg' },
+  { id: 'fox', label: 'Fox', url: '/avatars/fox.svg' },
+  { id: 'owl', label: 'Owl', url: '/avatars/owl.svg' }
+] as const;
 
 const Profile = () => {
   const { id } = useParams();
@@ -28,12 +39,12 @@ const Profile = () => {
       website: ''
     }
   });
-  const [uploading, setUploading] = useState(false);
   const [authPrompt, setAuthPrompt] = useState<{ open: boolean; title?: string; description?: string }>({
     open: false
   });
 
   const nextPath = `${location.pathname}${location.search}`;
+  const resolvePostImage = (post: any) => post?.featuredImage || post?.image || '';
   const requireAuth = (title: string, description: string) => {
     setAuthPrompt({ open: true, title, description });
   };
@@ -110,27 +121,6 @@ const Profile = () => {
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    const formData = new FormData();
-    formData.append('image', file);
-
-    setUploading(true);
-    try {
-      const res = await api.post('/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      setEditForm({ ...editForm, avatar: res.data.url });
-    } catch (err) {
-      console.error(err);
-      alert('Failed to upload image');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   if (loading) return <div className="container" style={{ textAlign: 'center', padding: '100px' }}>Loading profile...</div>;
   if (!profile) return <div className="container" style={{ textAlign: 'center', padding: '100px' }}>User not found</div>;
 
@@ -171,7 +161,16 @@ const Profile = () => {
           fontWeight: 'bold',
           color: 'var(--btn-text)'
         }}>
-          {profile.avatar ? <img src={profile.avatar} alt={profile.username} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} /> : profile.username[0].toUpperCase()}
+          {profile.avatar ? (
+            <SafeImage
+              src={profile.avatar}
+              alt={profile.username}
+              style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+              fallback={<span>{profile.username?.[0]?.toUpperCase()}</span>}
+            />
+          ) : (
+            profile.username?.[0]?.toUpperCase()
+          )}
         </div>
         {profile.role === 'admin' && (
           <div style={{ marginBottom: '16px' }}>
@@ -246,11 +245,67 @@ const Profile = () => {
             <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--text-color)' }}>Avatar</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary)', overflow: 'hidden' }}>
-                  {editForm.avatar ? <img src={editForm.avatar} alt="Avatar Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : profile.username[0].toUpperCase()}
+                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-color)', fontWeight: 800 }}>
+                  {editForm.avatar ? (
+                    <SafeImage
+                      src={editForm.avatar}
+                      alt="Avatar Preview"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      fallback={<span>{profile.username?.[0]?.toUpperCase()}</span>}
+                    />
+                  ) : (
+                    <span>{profile.username?.[0]?.toUpperCase()}</span>
+                  )}
                 </div>
-                <input type="file" onChange={handleFileChange} accept="image/*" />
-                {uploading && <span style={{ fontSize: '12px', color: 'var(--primary)' }}>Uploading...</span>}
+                <div style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: 1.4 }}>
+                  Pick an avatar from the presets below.
+                  <div style={{ marginTop: '6px' }}>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '8px 14px', borderRadius: '999px', fontSize: '12px' }}
+                      onClick={() => setEditForm({ ...editForm, avatar: '' })}
+                    >
+                      Use initials
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: '14px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))',
+                  gap: '12px'
+                }}
+              >
+                {PRESET_AVATARS.map((a) => {
+                  const selected = editForm.avatar === a.url;
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      title={a.label}
+                      aria-label={a.label}
+                      onClick={() => setEditForm({ ...editForm, avatar: a.url })}
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '16px',
+                        padding: 0,
+                        overflow: 'hidden',
+                        border: selected ? '2px solid var(--primary)' : '1px solid var(--glass-border)',
+                        background: 'var(--glass-bg)',
+                        boxShadow: selected ? '0 0 0 4px var(--glass-bg)' : 'none',
+                        transition: 'var(--transition-smooth)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <img src={a.url} alt={a.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </button>
+                  );
+                })}
               </div>
             </div>
             
@@ -378,7 +433,11 @@ const Profile = () => {
                   className="post-card"
                 >
                   <div className="post-card-image">
-                    <img src={post.featuredImage} alt={post.title} />
+                    <SafeImage
+                      src={resolvePostImage(post)}
+                      alt={post.title}
+                      fallback={<div className="img-fallback">No image</div>}
+                    />
                   </div>
                   <div className="post-card-content">
                     <span className="badge">{post.category?.name || 'Story'}</span>

@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import SafeImage from '../components/SafeImage';
 import '../App.css';
 
 const Home = () => {
@@ -62,6 +63,7 @@ const Home = () => {
 
   const featuredPost: any = posts[0];
   const remainingPosts = posts.slice(1);
+  const resolvePostImage = (post: any) => post?.featuredImage || post?.image || '';
 
   return (
     <motion.div 
@@ -123,7 +125,12 @@ const Home = () => {
           className="featured-post"
         >
           <div className="featured-img-wrapper">
-            <img src={featuredPost.featuredImage} alt={featuredPost.title} className="featured-img" />
+            <SafeImage
+              src={resolvePostImage(featuredPost)}
+              alt={featuredPost.title}
+              className="featured-img"
+              fallback={<div className="img-fallback">No image</div>}
+            />
           </div>
           <div className="featured-content">
             <span className="badge">Featured Story</span>
@@ -167,9 +174,14 @@ const Home = () => {
                 transition={{ delay: index * 0.1 }}
                 className="post-card"
               >
-                {post.featuredImage && (
+                {resolvePostImage(post) && (
                   <div className="post-img-wrapper">
-                    <img src={post.featuredImage} alt={post.title} className="post-img" />
+                    <SafeImage
+                      src={resolvePostImage(post)}
+                      alt={post.title}
+                      className="post-img"
+                      fallback={<div className="img-fallback">No image</div>}
+                    />
                   </div>
                 )}
                 <div className="post-content">

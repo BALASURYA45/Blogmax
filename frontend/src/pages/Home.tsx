@@ -88,6 +88,21 @@ const Home = () => {
   const featuredPost: any = posts[0];
   const remainingPosts = posts.slice(1);
   const resolvePostImage = (post: any) => post?.featuredImage || post?.image || '';
+  const onCardClick =
+    (slug: string) =>
+    (e: React.MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('a')) return;
+      navigate(`/post/${slug}`);
+    };
+  const onCardKeyDown =
+    (slug: string) =>
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        navigate(`/post/${slug}`);
+      }
+    };
 
   return (
     <motion.div 
@@ -201,6 +216,11 @@ const Home = () => {
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.05 }}
                     className="post-card"
+                    role="link"
+                    tabIndex={0}
+                    onClick={onCardClick(post.slug)}
+                    onKeyDown={onCardKeyDown(post.slug)}
+                    style={{ cursor: 'pointer' }}
                   >
                     {resolvePostImage(post) && (
                       <div className="post-img-wrapper">
@@ -242,6 +262,11 @@ const Home = () => {
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.05 }}
                     className="post-card"
+                    role="link"
+                    tabIndex={0}
+                    onClick={onCardClick(post.slug)}
+                    onKeyDown={onCardKeyDown(post.slug)}
+                    style={{ cursor: 'pointer' }}
                   >
                     {resolvePostImage(post) && (
                       <div className="post-img-wrapper">
@@ -284,6 +309,11 @@ const Home = () => {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 className="post-card"
+                role="link"
+                tabIndex={0}
+                onClick={onCardClick(post.slug)}
+                onKeyDown={onCardKeyDown(post.slug)}
+                style={{ cursor: 'pointer' }}
               >
                 {resolvePostImage(post) && (
                   <div className="post-img-wrapper">

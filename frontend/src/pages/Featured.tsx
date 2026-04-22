@@ -2,12 +2,28 @@ import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import api from '../services/api';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../App.css';
 
 const Featured = () => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const onCardClick =
+    (slug: string) =>
+    (e: React.MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('a')) return;
+      navigate(`/post/${slug}`);
+    };
+  const onCardKeyDown =
+    (slug: string) =>
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        navigate(`/post/${slug}`);
+      }
+    };
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -50,7 +66,11 @@ const Featured = () => {
                 key={post._id}
                 whileHover={{ y: -10 }}
                 className="post-card"
-                style={{ border: '1px solid var(--glass-border)', background: 'var(--glass-bg)' }}
+                role="link"
+                tabIndex={0}
+                onClick={onCardClick(post.slug)}
+                onKeyDown={onCardKeyDown(post.slug)}
+                style={{ cursor: 'pointer', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)' }}
               >
                 <Link to={`/post/${post.slug}`}>
                   <div className="post-img-wrapper">

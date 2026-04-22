@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import SafeImage from '../components/SafeImage';
 import '../App.css';
 
 const Search = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
   const resolvePostImage = (post: any) => post?.featuredImage || post?.image || '';
@@ -14,6 +15,21 @@ const Search = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const onCardClick =
+    (slug: string) =>
+    (e: React.MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('a')) return;
+      navigate(`/post/${slug}`);
+    };
+  const onCardKeyDown =
+    (slug: string) =>
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        navigate(`/post/${slug}`);
+      }
+    };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -144,6 +160,11 @@ const Search = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                   className="post-card"
+                  role="link"
+                  tabIndex={0}
+                  onClick={onCardClick(post.slug)}
+                  onKeyDown={onCardKeyDown(post.slug)}
+                  style={{ cursor: 'pointer' }}
                 >
                   {resolvePostImage(post) && (
                     <div className="post-img-wrapper" style={{ height: '180px' }}>

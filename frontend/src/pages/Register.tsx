@@ -115,7 +115,7 @@ const Register = () => {
                   type="email"
                   required
                   className="form-input form-input--icon"
-                  placeholder="you@example.com"
+                  placeholder="Enter your email address"
                   autoComplete="email"
                   inputMode="email"
                   value={email}

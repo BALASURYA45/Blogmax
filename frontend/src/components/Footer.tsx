@@ -8,10 +8,11 @@ const Footer = () => {
         <div className="footer-grid">
           <div className="footer-info">
             <Link to="/" className="footer-logo nav-logo">BlogMax</Link>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.6', maxWidth: '300px' }}>
+            <p className="footer-desc">
               The ultimate destination for tech enthusiasts and storytellers. Sharing insights from the world of design and code.
             </p>
           </div>
+
           <div className="footer-links">
             <h4>Platform</h4>
             <ul>
@@ -21,6 +22,7 @@ const Footer = () => {
               <li><Link to="/authors">Authors</Link></li>
             </ul>
           </div>
+
           <div className="footer-links">
             <h4>Company</h4>
             <ul>
@@ -30,18 +32,20 @@ const Footer = () => {
               <li><Link to="/contact">Contact</Link></li>
             </ul>
           </div>
+
           <div className="footer-links">
             <h4>Social</h4>
             <ul>
-              <li><a href="https://twitter.com">Twitter</a></li>
-              <li><a href="https://linkedin.com">LinkedIn</a></li>
-              <li><a href="https://instagram.com">Instagram</a></li>
-              <li><a href="https://github.com">GitHub</a></li>
+              <li><a href="https://twitter.com" target="_blank" rel="noreferrer">Twitter</a></li>
+              <li><a href="https://linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a></li>
+              <li><a href="https://instagram.com" target="_blank" rel="noreferrer">Instagram</a></li>
+              <li><a href="https://github.com" target="_blank" rel="noreferrer">GitHub</a></li>
             </ul>
           </div>
         </div>
+
         <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} BlogMax. Designed for the future of the web.</p>
+          <p>{'\u00A9'} {new Date().getFullYear()} BlogMax. Designed for the future of the web.</p>
         </div>
       </div>
     </footer>
@@ -49,3 +53,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

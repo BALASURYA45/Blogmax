@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { Bell, Home as HomeIcon, LogIn, LogOut, Moon, Plus, Settings, Sun, User as UserIcon, UserPlus } from 'lucide-react';
@@ -21,6 +21,7 @@ const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [navHidden, setNavHidden] = useState(false);
   const location = useLocation();
   const unreadCount = notifications.filter(n => !n.read).length;
   const nextPath = `${location.pathname}${location.search}`;
@@ -29,6 +30,40 @@ const Navbar = () => {
     (import.meta.env.VITE_API_BASE_URL
       ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '')
       : (import.meta.env.DEV ? 'http://localhost:5000' : 'https://blogmax-k21q.onrender.com'));
+  const lastScrollYRef = useRef(0);
+  const tickingRef = useRef(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (tickingRef.current) return;
+      tickingRef.current = true;
+
+      window.requestAnimationFrame(() => {
+        const currentY = window.scrollY || 0;
+        const lastY = lastScrollYRef.current;
+        const delta = currentY - lastY;
+
+        // Keep visible near top.
+        if (currentY < 30) {
+          setNavHidden(false);
+        } else if (Math.abs(delta) > 10) {
+          // Hide when scrolling down, show when scrolling up.
+          if (delta > 0) setNavHidden(true);
+          else setNavHidden(false);
+        }
+
+        lastScrollYRef.current = currentY;
+        tickingRef.current = false;
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll as any);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('nav-hidden', navHidden);
+  }, [navHidden]);
 
   useEffect(() => {
     if (!user) return;
@@ -76,7 +111,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${navHidden ? 'navbar--hidden' : ''}`}>
       <div className="container">
         <Link to="/" className="nav-logo">BlogMax</Link>
         <div className="nav-links">

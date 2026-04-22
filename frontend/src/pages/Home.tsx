@@ -4,11 +4,16 @@ import api from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import SafeImage from '../components/SafeImage';
+import { useAuth } from '../context/AuthContext';
 import '../App.css';
 
 const Home = () => {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<any[]>([]);
+  const [forYouPosts, setForYouPosts] = useState<any[]>([]);
+  const [trendingPosts, setTrendingPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingDiscovery, setLoadingDiscovery] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -41,6 +46,25 @@ const Home = () => {
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    const fetchDiscovery = async () => {
+      try {
+        setLoadingDiscovery(true);
+        const [forYouRes, trendingRes] = await Promise.all([
+          user ? api.get('/posts/for-you?limit=6') : Promise.resolve({ data: { posts: [] } } as any),
+          api.get('/posts/trending?limit=6&days=14')
+        ]);
+        setForYouPosts(forYouRes.data?.posts || []);
+        setTrendingPosts(trendingRes.data?.posts || []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingDiscovery(false);
+      }
+    };
+    fetchDiscovery();
+  }, [user]);
 
   const loadMore = () => {
     const nextPage = page + 1;
@@ -155,6 +179,93 @@ const Home = () => {
             <Link to={`/post/${featuredPost.slug}`} className="btn-primary" style={{ display: 'inline-block' }}>Read Full Story</Link>
           </div>
         </motion.section>
+      )}
+
+      {/* Discovery Sections */}
+      {!loadingDiscovery && (
+        <div style={{ marginTop: '64px', marginBottom: '18px', display: 'grid', gap: '28px' }}>
+          {user && forYouPosts.length > 0 && (
+            <section>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+                <h2 style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-1px', color: 'var(--text-color)' }}>For You</h2>
+                <Link to="/latest" style={{ color: 'var(--primary-bright)', fontWeight: 700, fontSize: '14px' }}>
+                  Explore â†’
+                </Link>
+              </div>
+              <div className="posts-grid">
+                {forYouPosts.slice(0, 6).map((post: any, index: number) => (
+                  <motion.div
+                    key={post._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.05 }}
+                    className="post-card"
+                  >
+                    {resolvePostImage(post) && (
+                      <div className="post-img-wrapper">
+                        <SafeImage src={resolvePostImage(post)} alt={post.title} className="post-img" fallback={<div className="img-fallback">No image</div>} />
+                      </div>
+                    )}
+                    <div className="post-content">
+                      <span className="post-category">{post.category?.name}</span>
+                      <h2 className="post-title">
+                        <Link to={`/post/${post.slug}`}>{post.title}</Link>
+                      </h2>
+                      <p className="post-excerpt">{post.excerpt}</p>
+                      <div className="post-meta">
+                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                          {new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} â€¢ {post.views || 0} views â€¢ {post.likes?.length || 0} likes
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {trendingPosts.length > 0 && (
+            <section>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+                <h2 style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-1px', color: 'var(--text-color)' }}>Trending</h2>
+                <Link to="/featured" style={{ color: 'var(--primary-bright)', fontWeight: 700, fontSize: '14px' }}>
+                  See more â†’
+                </Link>
+              </div>
+              <div className="posts-grid">
+                {trendingPosts.slice(0, 6).map((post: any, index: number) => (
+                  <motion.div
+                    key={post._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.05 }}
+                    className="post-card"
+                  >
+                    {resolvePostImage(post) && (
+                      <div className="post-img-wrapper">
+                        <SafeImage src={resolvePostImage(post)} alt={post.title} className="post-img" fallback={<div className="img-fallback">No image</div>} />
+                      </div>
+                    )}
+                    <div className="post-content">
+                      <span className="post-category">{post.category?.name}</span>
+                      <h2 className="post-title">
+                        <Link to={`/post/${post.slug}`}>{post.title}</Link>
+                      </h2>
+                      <p className="post-excerpt">{post.excerpt}</p>
+                      <div className="post-meta">
+                        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                          {new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} â€¢ {post.views || 0} views â€¢ {post.likes?.length || 0} likes
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
       )}
 
       {/* Recent Stories Grid */}

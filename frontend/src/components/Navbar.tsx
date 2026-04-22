@@ -1,16 +1,25 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { Bell, LogOut, Moon, Plus, Settings, Sun } from 'lucide-react';
+import { Bell, Home as HomeIcon, LogOut, Moon, Plus, Settings, Sun, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
 import '../App.css';
 
+type NotificationItem = {
+  _id: string;
+  type: 'like' | 'comment' | 'follow';
+  read: boolean;
+  createdAt: string;
+  sender?: { username?: string; avatar?: string } | null;
+  post?: { slug: string; title: string } | null;
+};
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -34,7 +43,7 @@ const Navbar = () => {
     const socket = io('http://localhost:5000'); // Use your backend URL
     socket.emit('join', user.id || user._id);
 
-    socket.on('notification', (notification) => {
+    socket.on('notification', (notification: NotificationItem) => {
       setNotifications(prev => [notification, ...prev]);
     });
 
@@ -47,17 +56,18 @@ const Navbar = () => {
     if (unreadCount === 0) return;
     try {
       await api.put('/notifications/read');
-      setNotifications(notifications.map(n => ({ ...n, read: true })));
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     } catch (err) {
       console.error(err);
     }
   };
 
   const toggleNotifications = () => {
-    setShowNotifications(!showNotifications);
-    if (!showNotifications) {
-      markAsRead();
-    }
+    setShowNotifications((prev) => {
+      const next = !prev;
+      if (next) markAsRead();
+      return next;
+    });
   };
 
   return (
@@ -65,7 +75,14 @@ const Navbar = () => {
       <div className="container">
         <Link to="/" className="nav-logo">BlogMax</Link>
         <div className="nav-links">
-          <Link to="/">Home</Link>
+          <Link
+            to="/"
+            className="nav-icon-btn nav-icon-btn--premium"
+            title="Home"
+            aria-label="Home"
+          >
+            <HomeIcon size={18} />
+          </Link>
           <button 
             onClick={toggleTheme} 
             className={`theme-toggle ${theme}`}
@@ -140,8 +157,13 @@ const Navbar = () => {
                 )}
               </div>
 
-              <Link to={`/profile/${user.id || user._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>{user.username}</span>
+              <Link
+                to={`/profile/${user.id || user._id}`}
+                className="nav-icon-btn nav-icon-btn--premium"
+                title={user.username}
+                aria-label="Profile"
+              >
+                <UserIcon size={18} />
               </Link>
               <Link
                 to="/settings"
@@ -151,8 +173,13 @@ const Navbar = () => {
               >
                 <Settings size={18} />
               </Link>
-              <button onClick={logout} className="btn-logout btn-logout--premium" type="button">
-                <span>Logout</span>
+              <button
+                onClick={logout}
+                className="btn-logout btn-logout--premium btn-logout--icon"
+                type="button"
+                title="Logout"
+                aria-label="Logout"
+              >
                 <LogOut size={16} />
               </button>
             </div>

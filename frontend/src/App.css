@@ -68,14 +68,14 @@ body {
 .theme-toggle {
   background: var(--glass-bg);
   border: 1px solid var(--primary);
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 18px;
   transition: var(--transition-smooth);
   color: var(--primary);
   padding: 0;
@@ -85,14 +85,14 @@ body {
 .theme-toggle:hover {
   background: var(--primary);
   color: var(--btn-text);
-  transform: rotate(30deg) scale(1.1);
+  transform: rotate(30deg) scale(1.05);
   border-color: var(--primary-bright);
   box-shadow: 0 0 20px var(--glass-border);
 }
 
 /* Update navbar background */
 .navbar {
-  background-color: var(--surface-color);
+  background-color: #000;
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--glass-border);
   height: 80px;
@@ -101,6 +101,51 @@ body {
   position: sticky;
   top: 0;
   z-index: 1000;
+}
+
+/* Navbar is always black: force high-contrast controls even in white theme */
+.navbar .nav-links a {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.navbar .nav-links a:hover {
+  color: #ffffff;
+}
+
+.navbar .theme-toggle {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
+}
+
+.navbar .theme-toggle:hover {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+.navbar .nav-icon-btn--premium,
+[data-theme='white'] .navbar .nav-icon-btn--premium {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(0, 0, 0, 0.25) inset;
+}
+
+.navbar .nav-icon-btn--gold,
+[data-theme='white'] .navbar .nav-icon-btn--gold {
+  color: #fbbf24;
+}
+
+.navbar .btn-logout--premium,
+[data-theme='white'] .navbar .btn-logout--premium {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
 }
 
 .nav-search {
@@ -317,11 +362,10 @@ body {
 }
 
 select.form-input {
-  background-color: var(--surface-color); /* Theme based background */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 20px center;
-  background-size: 20px;
+  /* Use shorthand so repeat/position/size can't get lost via overrides */
+  background: var(--surface-color)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")
+    no-repeat right 20px center / 20px 20px;
   padding-right: 50px;
   cursor: pointer;
   border: 1px solid var(--glass-border);
@@ -329,7 +373,9 @@ select.form-input {
 }
 
 [data-theme='white'] select.form-input {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background: var(--surface-color)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")
+    no-repeat right 20px center / 20px 20px;
 }
 
 select.form-input:hover {
@@ -464,6 +510,10 @@ select.form-input option {
   background: radial-gradient(120% 120% at 30% 20%, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.04) 45%, rgba(255, 255, 255, 0.02) 100%);
   border: 1px solid rgba(255, 255, 255, 0.10);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+.btn-logout--icon {
+  padding: 8px 12px;
 }
 
 [data-theme='white'] .btn-logout--premium {
@@ -881,7 +931,7 @@ select.form-input option {
 }
 
 .badge {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: linear-gradient(135deg, #6e56ff 0%, #06b6d4 100%);
   color: white;
   padding: 6px 16px;
   border-radius: 100px;

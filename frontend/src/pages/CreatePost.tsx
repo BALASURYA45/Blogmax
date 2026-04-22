@@ -15,13 +15,16 @@ const CreatePost = () => {
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState('draft');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [savingLocal, setSavingLocal] = useState(false);
   const navigate = useNavigate();
 
   // Load draft from localStorage
   useEffect(() => {
     const savedDraft = localStorage.getItem('post-draft');
     if (savedDraft) {
-      const { title, content, category, tags, featuredImage } = JSON.parse(savedDraft);
+      const parsed = JSON.parse(savedDraft);
+      const draft = parsed?.draft || parsed; // backward compatible
+      const { title, content, category, tags, featuredImage } = draft;
       if (title) setTitle(title);
       if (content) setContent(content);
       if (category) setCategory(category);
@@ -32,9 +35,14 @@ const CreatePost = () => {
 
   // Save draft to localStorage
   useEffect(() => {
-    const draft = { title, content, category, tags, featuredImage };
-    localStorage.setItem('post-draft', JSON.stringify(draft));
-    setLastSaved(new Date().toLocaleTimeString());
+    setSavingLocal(true);
+    const t = window.setTimeout(() => {
+      const draft = { title, content, category, tags, featuredImage };
+      localStorage.setItem('post-draft', JSON.stringify({ at: new Date().toISOString(), draft }));
+      setLastSaved(new Date().toLocaleTimeString());
+      setSavingLocal(false);
+    }, 750);
+    return () => window.clearTimeout(t);
   }, [title, content, category, tags, featuredImage]);
 
   useEffect(() => {
@@ -118,7 +126,8 @@ const CreatePost = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <h1>Create New Post</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {lastSaved && <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Draft auto-saved at {lastSaved}</span>}
+          {savingLocal && <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Saving draft...</span>}
+          {!savingLocal && lastSaved && <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Draft saved at {lastSaved}</span>}
           <button 
             type="button" 
             onClick={() => {

@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import api from '../services/api';
+import RevisionHistoryModal from '../components/RevisionHistoryModal';
 import '../App.css';
 
 const EditPost = () => {
@@ -16,30 +17,18 @@ const EditPost = () => {
   const [status, setStatus] = useState('draft');
   const [loading, setLoading] = useState(true);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [serverSavedAt, setServerSavedAt] = useState<string | null>(null);
+  const [serverSaveState, setServerSaveState] = useState<'idle' | 'saving' | 'error'>('idle');
+  const [postId, setPostId] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [localDraftMeta, setLocalDraftMeta] = useState<{ at: string; draft: any } | null>(null);
+  const [showRecovery, setShowRecovery] = useState(false);
   const { slug } = useParams();
   const navigate = useNavigate();
 
-  // Load draft from localStorage
-  useEffect(() => {
-    if (!slug) return;
-    const savedDraft = localStorage.getItem(`post-draft-${slug}`);
-    if (savedDraft) {
-      const { title, content, category, tags, featuredImage } = JSON.parse(savedDraft);
-      if (title) setTitle(title);
-      if (content) setContent(content);
-      if (category) setCategory(category);
-      if (tags) setTags(tags);
-      if (featuredImage) setFeaturedImage(featuredImage);
-    }
-  }, [slug]);
-
-  // Save draft to localStorage
-  useEffect(() => {
-    if (loading || !slug) return;
-    const draft = { title, content, category, tags, featuredImage };
-    localStorage.setItem(`post-draft-${slug}`, JSON.stringify(draft));
-    setLastSaved(new Date().toLocaleTimeString());
-  }, [title, content, category, tags, featuredImage, loading, slug]);
+  const localStorageKey = useMemo(() => (slug ? `post-draft-${slug}` : null), [slug]);
+  const lastAutosaveRef = useRef<number>(0);
+  const autosaveTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,12 +49,32 @@ const EditPost = () => {
         }
         
         const post = postRes.data;
+        setPostId(post._id);
         setTitle(post.title);
         setContent(post.content);
         setCategory(post.category?._id || post.category);
         setTags(post.tags.join(', '));
         setFeaturedImage(post.featuredImage);
         setStatus(post.status);
+
+        // Crash recovery prompt: only after server version is loaded.
+        if (localStorageKey) {
+          const raw = localStorage.getItem(localStorageKey);
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw);
+              const draft = parsed?.draft || parsed; // backward compatible
+              const at = parsed?.at || null;
+              if (draft && (draft.title || draft.content || draft.tags || draft.featuredImage)) {
+                setLocalDraftMeta({ at: at || new Date().toISOString(), draft });
+                setShowRecovery(true);
+              }
+            } catch {
+              // ignore
+            }
+          }
+        }
+
         setLoading(false);
       } catch (err) {
         console.error(err);
@@ -74,6 +83,49 @@ const EditPost = () => {
     };
     fetchData();
   }, [slug]);
+
+  // Save draft locally (crash recovery) with debounce-friendly metadata.
+  useEffect(() => {
+    if (loading || !localStorageKey) return;
+    const draft = { title, content, category, tags, featuredImage };
+    localStorage.setItem(localStorageKey, JSON.stringify({ at: new Date().toISOString(), draft }));
+    setLastSaved(new Date().toLocaleTimeString());
+  }, [title, content, category, tags, featuredImage, loading, localStorageKey]);
+
+  // Server autosave (draft safety) with debounce + version history.
+  useEffect(() => {
+    if (loading || !postId) return;
+
+    if (autosaveTimerRef.current) window.clearTimeout(autosaveTimerRef.current);
+
+    autosaveTimerRef.current = window.setTimeout(async () => {
+      const now = Date.now();
+      if (now - lastAutosaveRef.current < 6000) return;
+      lastAutosaveRef.current = now;
+
+      try {
+        setServerSaveState('saving');
+        const res = await api.post(`/posts/${postId}/autosave`, {
+          title,
+          content,
+          category,
+          tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+          featuredImage
+        });
+        if (res.data?.saved) {
+          setServerSavedAt(new Date().toLocaleTimeString());
+        }
+        setServerSaveState('idle');
+      } catch (e) {
+        console.error(e);
+        setServerSaveState('error');
+      }
+    }, 1800);
+
+    return () => {
+      if (autosaveTimerRef.current) window.clearTimeout(autosaveTimerRef.current);
+    };
+  }, [title, content, category, tags, featuredImage, loading, postId]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -98,9 +150,7 @@ const EditPost = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const postRes = await api.get(`/posts/${slug}`);
-      const postId = postRes.data._id;
-      
+      if (!postId) return;
       await api.put(`/posts/${postId}`, {
         title,
         content,
@@ -109,7 +159,7 @@ const EditPost = () => {
         status,
         featuredImage
       });
-      localStorage.removeItem(`post-draft-${slug}`);
+      if (localStorageKey) localStorage.removeItem(localStorageKey);
       navigate(`/post/${slug}`);
     } catch (err) {
       console.error(err);
@@ -130,15 +180,50 @@ const EditPost = () => {
 
   return (
     <div className="editor-container">
+      <RevisionHistoryModal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        postId={postId}
+        currentTitle={title}
+        currentContent={content}
+        onRestored={async () => {
+          if (!slug) return;
+          try {
+            const postRes = await api.get(`/posts/${slug}`);
+            const post = postRes.data;
+            setPostId(post._id);
+            setTitle(post.title);
+            setContent(post.content);
+            setCategory(post.category?._id || post.category);
+            setTags((post.tags || []).join(', '));
+            setFeaturedImage(post.featuredImage || '');
+            setStatus(post.status || 'draft');
+          } catch (e) {
+            console.error(e);
+          }
+        }}
+      />
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <h1>Edit Post</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {lastSaved && <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Draft auto-saved at {lastSaved}</span>}
+          {serverSaveState === 'saving' && <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Saving to server...</span>}
+          {serverSaveState === 'error' && <span style={{ fontSize: '12px', color: 'rgba(255,120,120,0.9)' }}>Server auto-save failed</span>}
+          {serverSavedAt && serverSaveState === 'idle' && <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Server saved at {serverSavedAt}</span>}
+          {lastSaved && <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>â€¢ Local saved at {lastSaved}</span>}
+          <button
+            type="button"
+            onClick={() => setHistoryOpen(true)}
+            className="btn-secondary"
+            style={{ padding: '8px 16px', fontSize: '12px' }}
+          >
+            Version History
+          </button>
           <button 
             type="button" 
             onClick={() => {
               if (window.confirm('Clear local draft changes? This will revert to the server version.')) {
-                localStorage.removeItem(`post-draft-${slug}`);
+                if (localStorageKey) localStorage.removeItem(localStorageKey);
                 window.location.reload();
               }
             }}
@@ -149,6 +234,61 @@ const EditPost = () => {
           </button>
         </div>
       </div>
+
+      {showRecovery && localDraftMeta && (
+        <div
+          style={{
+            border: '1px solid var(--border-color)',
+            background: 'rgba(255,255,255,0.03)',
+            borderRadius: '18px',
+            padding: '14px',
+            marginBottom: '18px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '16px'
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 800, marginBottom: '4px' }}>Recovered a local draft</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+              Found unsaved changes on this device ({new Date(localDraftMeta.at).toLocaleString()}). Restore or discard.
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                if (!localStorageKey) return;
+                localStorage.removeItem(localStorageKey);
+                setShowRecovery(false);
+                setLocalDraftMeta(null);
+              }}
+              style={{ padding: '10px 14px', fontSize: '12px' }}
+            >
+              Discard
+            </button>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                const draft = localDraftMeta.draft || {};
+                if (draft.title !== undefined) setTitle(draft.title);
+                if (draft.content !== undefined) setContent(draft.content);
+                if (draft.category !== undefined) setCategory(draft.category);
+                if (draft.tags !== undefined) setTags(draft.tags);
+                if (draft.featuredImage !== undefined) setFeaturedImage(draft.featuredImage);
+                setShowRecovery(false);
+              }}
+              style={{ padding: '10px 14px', fontSize: '12px' }}
+            >
+              Restore draft
+            </button>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="editor-form">
         <div className="form-group">
           <label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '600', marginBottom: '4px', display: 'block' }}>Title</label>

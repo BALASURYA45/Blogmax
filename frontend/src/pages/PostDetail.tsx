@@ -98,9 +98,14 @@ const PostDetail = () => {
 
         // Fetch related posts
         try {
-          const categoryId = postData.category?._id || postData.category;
-          const relatedRes = await api.get(`/posts/related?categoryId=${categoryId}&currentPostId=${postData._id}`);
-          setRelatedPosts(relatedRes.data);
+          try {
+            const similarRes = await api.get(`/posts/${postData.slug}/similar?limit=3`);
+            setRelatedPosts(similarRes.data || []);
+          } catch {
+            const categoryId = postData.category?._id || postData.category;
+            const relatedRes = await api.get(`/posts/related?categoryId=${categoryId}&currentPostId=${postData._id}`);
+            setRelatedPosts(relatedRes.data);
+          }
         } catch (e) {
           console.error("Error fetching related posts", e);
         }

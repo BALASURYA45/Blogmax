@@ -273,60 +273,61 @@ const PostDetail = () => {
           transition: 'width 0.1s ease-out'
         }} 
       />
-      <header className="post-detail-header">
-        <SafeImage src={resolvePostImage(post)} alt={post.title} className="header-bg-img" />
-        <div className="header-overlay"></div>
-        <div className="container header-content">
+      <header className="post-detail-header post-detail-header--stacked">
+        <div className="container">
+          <div className="post-detail-hero">
+            <SafeImage src={resolvePostImage(post)} alt={post.title} className="post-detail-hero-img" />
+          </div>
+        </div>
+        <div className="container post-detail-hero-content">
           <motion.div 
             initial={{ y: 30, opacity: 0 }} 
             animate={{ y: 0, opacity: 1 }} 
             transition={{ delay: 0.3 }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <span className="badge">{post.category?.name}</span>
-              {canEdit && (
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <Link to={`/edit/${post.slug}`} className="btn-edit">Edit Story</Link>
-                  <button onClick={handleDelete} className="btn-delete">Delete</button>
-                </div>
-              )}
-            </div>
-            <h1 style={{ fontSize: '64px', fontWeight: '800', margin: '24px 0', letterSpacing: '-2px', lineHeight: '1.1' }}>
-              {post.title}
-            </h1>
-            <div className="post-header-meta" style={{ marginBottom: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Link to={`/profile/${post.author?._id || post.author}`} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: 'var(--btn-text)' }}>
+            <div className="post-detail-info-card">
+              <div className="post-detail-topline">
+                <span className="badge">{post.category?.name}</span>
+                {canEdit && (
+                  <div className="post-detail-actions">
+                    <Link to={`/edit/${post.slug}`} className="btn-edit">Edit Story</Link>
+                    <button onClick={handleDelete} className="btn-delete">Delete</button>
+                  </div>
+                )}
+              </div>
+
+              <h1 className="post-detail-title">{post.title}</h1>
+
+              <div className="post-header-meta post-detail-meta">
+                <div className="post-detail-meta-row">
+                  <Link to={`/profile/${post.author?._id || post.author}`} className="post-detail-author">
+                    <div className="post-detail-avatar">
                       {post.author?.username[0].toUpperCase()}
                     </div>
-                    <div>
-                      <div style={{ color: 'var(--text-color)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {post.author?.username}
-                      </div>
-                      <div style={{ fontSize: '13px', display: 'flex', gap: '8px', color: 'var(--text-secondary)' }}>
+                    <div className="post-detail-author-text">
+                      <div className="post-detail-author-name">{post.author?.username}</div>
+                      <div className="post-detail-author-stats">
                         <span>{new Date(post.createdAt).toLocaleDateString(undefined, { dateStyle: 'long' })}</span>
-                        <span>•</span>
+                        <span className="dot">{'\u2022'}</span>
                         <span>{readingTime} min read</span>
-                        <span>•</span>
+                        <span className="dot">{'\u2022'}</span>
                         <span>{post.views || 0} views</span>
-                        <span>•</span>
+                        <span className="dot">{'\u2022'}</span>
                         <span>{post.likes?.length || 0} likes</span>
                       </div>
                     </div>
                   </Link>
+
+                  {user && (user.id || user._id) !== (post.author?._id || post.author) && (
+                    <button 
+                      onClick={handleFollow}
+                      className={isFollowing ? 'btn-secondary post-detail-follow' : 'btn-primary post-detail-follow'}
+                      type="button"
+                    >
+                      {isFollowing ? 'Following' : 'Follow'}
+                    </button>
+                  )}
                 </div>
-                
-                {user && (user.id || user._id) !== (post.author?._id || post.author) && (
-                  <button 
-                    onClick={handleFollow}
-                    className={isFollowing ? 'btn-secondary' : 'btn-primary'}
-                    style={{ padding: '8px 20px', borderRadius: '20px', fontSize: '14px', cursor: 'pointer' }}
-                  >
-                    {isFollowing ? 'Following' : 'Follow'}
-                  </button>
-                )}
               </div>
             </div>
           </motion.div>

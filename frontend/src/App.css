@@ -526,10 +526,10 @@ html, body, #root {
 }
 
 .auth-shell {
-  width: min(1100px, 100%);
+  width: min(920px, 100%);
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  gap: 28px;
+  gap: 18px;
   align-items: stretch;
   position: relative;
   z-index: 1;
@@ -546,7 +546,7 @@ html, body, #root {
     radial-gradient(140% 120% at 30% 20%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 45%, rgba(0, 0, 0, 0.0) 100%),
     linear-gradient(180deg, rgba(18, 22, 44, 0.62) 0%, rgba(0, 0, 0, 0.35) 100%);
   box-shadow: 0 40px 110px rgba(0, 0, 0, 0.55);
-  padding: 44px 40px;
+  padding: 30px 26px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -583,16 +583,16 @@ html, body, #root {
 }
 
 .auth-aside-title {
-  font-size: 44px;
+  font-size: 34px;
   line-height: 1.05;
-  letter-spacing: -1.8px;
-  margin-bottom: 14px;
+  letter-spacing: -1.4px;
+  margin-bottom: 12px;
 }
 
 .auth-aside-subtitle {
   color: rgba(255, 255, 255, 0.72);
-  font-size: 16px;
-  margin-bottom: 24px;
+  font-size: 14px;
+  margin-bottom: 18px;
   max-width: 42ch;
 }
 
@@ -600,14 +600,14 @@ html, body, #root {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   margin-top: 6px;
 }
 
 .auth-highlights li {
   position: relative;
   padding-left: 18px;
-  font-size: 14px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.78);
   font-weight: 700;
 }
@@ -630,8 +630,8 @@ html, body, #root {
   border: 1px solid var(--glass-border);
   border-radius: 24px;
   width: 100%;
-  max-width: 520px;
-  padding: 56px;
+  max-width: 460px;
+  padding: 32px;
   box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
   position: relative;
   overflow: hidden;
@@ -653,24 +653,24 @@ html, body, #root {
 }
 
 .auth-title {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 800;
   letter-spacing: -1.5px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   text-align: center;
 }
 
 .auth-subtitle {
   color: var(--text-secondary);
   text-align: center;
-  margin-bottom: 48px;
-  font-size: 16px;
+  margin-bottom: 18px;
+  font-size: 14px;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
   position: relative;
   z-index: 1;
 }
@@ -680,7 +680,7 @@ html, body, #root {
   border: 1px solid rgba(255, 68, 68, 0.35);
   background: rgba(255, 68, 68, 0.10);
   color: rgba(255, 255, 255, 0.92);
-  padding: 12px 14px;
+  padding: 9px 11px;
   font-weight: 700;
   font-size: 13px;
   line-height: 1.35;
@@ -689,11 +689,11 @@ html, body, #root {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
 }
 
 .form-group label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
   margin-left: 4px;
@@ -703,10 +703,10 @@ html, body, #root {
   background: var(--surface-color);
   border: 1px solid var(--glass-border);
   border-radius: 12px;
-  padding: 0 20px;
-  height: 56px;
+  padding: 0 16px;
+  height: 44px;
   color: var(--text-color);
-  font-size: 16px;
+  font-size: 15px;
   transition: var(--transition-smooth);
   appearance: none;
   -webkit-appearance: none;
@@ -729,7 +729,7 @@ html, body, #root {
 
 .form-field-icon {
   position: absolute;
-  left: 14px;
+  left: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -739,9 +739,9 @@ html, body, #root {
 
 .form-field-action {
   position: absolute;
-  right: 10px;
-  width: 38px;
-  height: 38px;
+  right: 8px;
+  width: 34px;
+  height: 34px;
   border-radius: 12px;
   display: inline-flex;
   align-items: center;
@@ -757,11 +757,11 @@ html, body, #root {
 }
 
 .form-input--icon {
-  padding-left: 46px;
+  padding-left: 40px;
 }
 
 .form-input--with-action {
-  padding-right: 54px;
+  padding-right: 46px;
 }
 
 .form-help {
@@ -776,8 +776,8 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: -6px;
+  gap: 10px;
+  margin-top: -2px;
 }
 
 .auth-check {
@@ -804,7 +804,7 @@ html, body, #root {
 }
 
 .auth-submit {
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .auth-footer {
@@ -848,11 +848,11 @@ html, body, #root {
 
   .auth-card {
     max-width: 100%;
-    padding: 42px 28px;
+    padding: 36px 24px;
   }
 
   .auth-subtitle {
-    margin-bottom: 34px;
+    margin-bottom: 22px;
   }
 }
 
@@ -866,12 +866,12 @@ html, body, #root {
   }
 
   .auth-card {
-    padding: 34px 20px;
+    padding: 28px 18px;
     border-radius: 20px;
   }
 
   .auth-title {
-    font-size: 30px;
+    font-size: 28px;
   }
 }
 
@@ -913,12 +913,12 @@ select.form-input option {
 .btn-primary {
   background: var(--primary);
   color: var(--btn-text);
-  padding: 18px;
+  padding: 14px;
   border-radius: 12px;
   font-size: 16px;
   font-weight: 700;
   text-align: center;
-  margin-top: 12px;
+  margin-top: 8px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
   border: none;
   cursor: pointer;

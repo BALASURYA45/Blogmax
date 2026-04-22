@@ -24,7 +24,18 @@ const CommentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Comment',
     default: null
-  }
+  },
+  mentions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  reactions: [{
+    emoji: { type: String, required: true },
+    users: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }]
+  }]
 }, {
   timestamps: true
 });

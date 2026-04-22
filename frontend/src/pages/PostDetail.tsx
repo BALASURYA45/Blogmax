@@ -6,6 +6,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import RequireAuthModal from '../components/RequireAuthModal';
 import SafeImage from '../components/SafeImage';
+import { Flame, Heart, Laugh, ThumbsUp } from 'lucide-react';
 import '../App.css';
 
 const PostDetail = () => {
@@ -179,6 +180,26 @@ const PostDetail = () => {
         setComments([{ ...res.data, replies: [] }, ...comments]);
         setComment('');
       }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const updateCommentTree = (items: any[], commentId: string, updater: (c: any) => any): any[] => {
+    return items.map((c) => {
+      if (c._id === commentId) return updater(c);
+      if (c.replies?.length) {
+        return { ...c, replies: updateCommentTree(c.replies, commentId, updater) };
+      }
+      return c;
+    });
+  };
+
+  const handleReact = async (commentId: string, emoji: string) => {
+    if (!user) return requireAuth('Login to react', 'Sign in or register to react to comments.');
+    try {
+      const res = await api.post(`/comments/${commentId}/react`, { emoji });
+      setComments((prev) => updateCommentTree(prev, commentId, (c) => ({ ...c, reactions: res.data.reactions })));
     } catch (err) {
       console.error(err);
     }
@@ -447,6 +468,7 @@ const PostDetail = () => {
                 key={c._id} 
                 comment={c} 
                 user={user} 
+                onReact={handleReact}
                 onReply={(id: string) => setReplyingTo(id)} 
                 replyingTo={replyingTo}
                 onReplySubmit={handleCommentSubmit}
@@ -497,7 +519,35 @@ const PostDetail = () => {
   );
 };
 
-const CommentItem = ({ comment, user, onReply, replyingTo, onReplySubmit }: any) => {
+const renderMentions = (text: string) => {
+  const parts = text.split(/(@[a-zA-Z0-9_]{3,30})/g);
+  return parts.map((p, idx) => {
+    if (/^@[a-zA-Z0-9_]{3,30}$/.test(p)) {
+      return (
+        <span key={idx} style={{ color: '#06b6d4', fontWeight: 800 }}>
+          {p}
+        </span>
+      );
+    }
+    return <span key={idx}>{p}</span>;
+  });
+};
+
+const CommentItem = ({ comment, user, onReact, onReply, replyingTo, onReplySubmit }: any) => {
+  const currentUserId = user?.id || user?._id;
+  const reactions = comment.reactions || [];
+  const hasReacted = (emoji: string) => {
+    const r = reactions.find((x: any) => x.emoji === emoji);
+    return !!r?.users?.some((u: any) => (u._id || u).toString() === currentUserId?.toString());
+  };
+
+  const reactionOptions = [
+    { emoji: '👍', label: 'Like', Icon: ThumbsUp },
+    { emoji: '❤️', label: 'Love', Icon: Heart },
+    { emoji: '😂', label: 'Laugh', Icon: Laugh },
+    { emoji: '🔥', label: 'Fire', Icon: Flame }
+  ];
+
   return (
     <div className="comment-card" style={{ marginBottom: '16px' }}>
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
@@ -513,9 +563,30 @@ const CommentItem = ({ comment, user, onReply, replyingTo, onReplySubmit }: any)
           </div>
         </Link>
       </div>
-      <p style={{ color: 'var(--text-color)', lineHeight: '1.6', marginBottom: '12px' }}>{comment.content}</p>
+      <p style={{ color: 'var(--text-color)', lineHeight: '1.6', marginBottom: '12px' }}>{renderMentions(comment.content || '')}</p>
       
-      <div style={{ display: 'flex', gap: '16px' }}>
+      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="comment-reactions">
+          {reactionOptions.map(({ emoji, label, Icon }) => {
+            const active = !!user && hasReacted(emoji);
+            const count = reactions.find((x: any) => x.emoji === emoji)?.users?.length || 0;
+            return (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => onReact(comment._id, emoji)}
+                title={active ? `Remove ${label}` : label}
+                aria-label={active ? `Remove ${label} reaction` : `Add ${label} reaction`}
+                className={`comment-reaction-btn ${active ? 'comment-reaction-btn--active' : ''}`}
+              >
+                <span className="comment-reaction-icon" aria-hidden="true">
+                  <Icon size={16} />
+                </span>
+                {count > 0 && <span className="comment-reaction-count">{count}</span>}
+              </button>
+            );
+          })}
+        </div>
         {user && (
           <button 
             onClick={() => onReply(replyingTo === comment._id ? null : comment._id)}
@@ -548,6 +619,7 @@ const CommentItem = ({ comment, user, onReply, replyingTo, onReplySubmit }: any)
               key={reply._id} 
               comment={reply} 
               user={user} 
+              onReact={onReact}
               onReply={onReply} 
               replyingTo={replyingTo}
               onReplySubmit={onReplySubmit}

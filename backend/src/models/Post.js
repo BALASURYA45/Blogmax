@@ -44,6 +44,16 @@ const PostSchema = new mongoose.Schema({
     enum: ['draft', 'published'],
     default: 'draft'
   },
+  scheduledAt: {
+    type: Date,
+    default: null,
+    index: true
+  },
+  publishedAt: {
+    type: Date,
+    default: null,
+    index: true
+  },
   views: {
     type: Number,
     default: 0

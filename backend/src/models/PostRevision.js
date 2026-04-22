@@ -30,6 +30,7 @@ const PostRevisionSchema = new mongoose.Schema(
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
     tags: { type: [String], default: [] },
     featuredImage: { type: String, default: '' },
+    scheduledAt: { type: Date, default: null },
     status: {
       type: String,
       enum: ['draft', 'published'],
@@ -42,4 +43,3 @@ const PostRevisionSchema = new mongoose.Schema(
 PostRevisionSchema.index({ post: 1, createdAt: -1 });
 
 module.exports = mongoose.model('PostRevision', PostRevisionSchema);
-

@@ -15,6 +15,8 @@ const EditPost = () => {
   const [featuredImage, setFeaturedImage] = useState('');
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState('draft');
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState('');
   const [loading, setLoading] = useState(true);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [serverSavedAt, setServerSavedAt] = useState<string | null>(null);
@@ -25,6 +27,11 @@ const EditPost = () => {
   const [showRecovery, setShowRecovery] = useState(false);
   const { slug } = useParams();
   const navigate = useNavigate();
+  const localNowInput = (() => {
+    const d = new Date();
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+  })();
 
   const localStorageKey = useMemo(() => (slug ? `post-draft-${slug}` : null), [slug]);
   const lastAutosaveRef = useRef<number>(0);
@@ -57,6 +64,17 @@ const EditPost = () => {
         setFeaturedImage(post.featuredImage);
         setStatus(post.status);
 
+        if (post.scheduledAt) {
+          setScheduleEnabled(true);
+          const d = new Date(post.scheduledAt);
+          const tzOffset = d.getTimezoneOffset() * 60000;
+          const local = new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+          setScheduledAt(local);
+        } else {
+          setScheduleEnabled(false);
+          setScheduledAt('');
+        }
+
         // Crash recovery prompt: only after server version is loaded.
         if (localStorageKey) {
           const raw = localStorage.getItem(localStorageKey);
@@ -87,10 +105,10 @@ const EditPost = () => {
   // Save draft locally (crash recovery) with debounce-friendly metadata.
   useEffect(() => {
     if (loading || !localStorageKey) return;
-    const draft = { title, content, category, tags, featuredImage };
+    const draft = { title, content, category, tags, featuredImage, scheduledAt: scheduleEnabled ? scheduledAt : '' };
     localStorage.setItem(localStorageKey, JSON.stringify({ at: new Date().toISOString(), draft }));
     setLastSaved(new Date().toLocaleTimeString());
-  }, [title, content, category, tags, featuredImage, loading, localStorageKey]);
+  }, [title, content, category, tags, featuredImage, scheduleEnabled, scheduledAt, loading, localStorageKey]);
 
   // Server autosave (draft safety) with debounce + version history.
   useEffect(() => {
@@ -110,7 +128,8 @@ const EditPost = () => {
           content,
           category,
           tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-          featuredImage
+          featuredImage,
+          scheduledAt: scheduleEnabled && scheduledAt ? scheduledAt : null
         });
         if (res.data?.saved) {
           setServerSavedAt(new Date().toLocaleTimeString());
@@ -125,7 +144,7 @@ const EditPost = () => {
     return () => {
       if (autosaveTimerRef.current) window.clearTimeout(autosaveTimerRef.current);
     };
-  }, [title, content, category, tags, featuredImage, loading, postId]);
+  }, [title, content, category, tags, featuredImage, scheduleEnabled, scheduledAt, loading, postId]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -157,7 +176,8 @@ const EditPost = () => {
         category,
         tags: tags.split(',').map(t => t.trim()).filter(t => t !== ''),
         status,
-        featuredImage
+        featuredImage,
+        scheduledAt: scheduleEnabled && scheduledAt ? scheduledAt : null
       });
       if (localStorageKey) localStorage.removeItem(localStorageKey);
       navigate(`/post/${slug}`);
@@ -382,11 +402,59 @@ const EditPost = () => {
           <select
             className="form-input"
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value;
+              setStatus(next);
+              if (next === 'published') {
+                setScheduleEnabled(false);
+                setScheduledAt('');
+              }
+            }}
           >
             <option value="draft">Draft</option>
             <option value="published">Published</option>
           </select>
+        </div>
+
+        <div className="form-group">
+          <label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '600', marginBottom: '8px', display: 'block' }}>Scheduled Publishing</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
+              Publish this draft automatically at a specific time.
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
+              <input
+                type="checkbox"
+                checked={scheduleEnabled}
+                disabled={status === 'published'}
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  setScheduleEnabled(on);
+                  if (on) setStatus('draft');
+                  if (!on) setScheduledAt('');
+                }}
+              />
+              <span style={{ fontWeight: 700, fontSize: '13px' }}>Enable</span>
+            </label>
+          </div>
+
+          {scheduleEnabled && (
+            <div style={{ marginTop: '12px' }}>
+              <input
+                type="datetime-local"
+                className="form-input"
+                value={scheduledAt}
+                min={localNowInput}
+                onChange={(e) => {
+                  setScheduledAt(e.target.value);
+                  setStatus('draft');
+                }}
+              />
+              <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                This post will stay as a draft until the scheduled time, then it will publish automatically.
+              </div>
+            </div>
+          )}
         </div>
         <button type="submit" className="btn-primary" style={{ padding: '16px' }}>
           Update Post

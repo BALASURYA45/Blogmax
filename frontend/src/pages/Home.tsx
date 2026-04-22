@@ -235,7 +235,9 @@ const Home = () => {
                       <p className="post-excerpt">{post.excerpt}</p>
                       <div className="post-meta">
                         <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                          {new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} â€¢ {post.views || 0} views â€¢ {post.likes?.length || 0} likes
+                          {new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}{' \u2022 '}
+                          {post.views || 0} views{' \u2022 '}
+                          {post.likes?.length || 0} likes
                         </span>
                       </div>
                     </div>
@@ -281,7 +283,9 @@ const Home = () => {
                       <p className="post-excerpt">{post.excerpt}</p>
                       <div className="post-meta">
                         <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                          {new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} â€¢ {post.views || 0} views â€¢ {post.likes?.length || 0} likes
+                          {new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}{' \u2022 '}
+                          {post.views || 0} views{' \u2022 '}
+                          {post.likes?.length || 0} likes
                         </span>
                       </div>
                     </div>

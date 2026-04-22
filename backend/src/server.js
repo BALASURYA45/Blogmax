@@ -15,6 +15,9 @@ const notificationRoutes = require('./routes/notifications');
 const upload = require('./middleware/upload');
 const { auth } = require('./middleware/auth');
 const Category = require('./models/Category');
+const Post = require('./models/Post');
+const User = require('./models/User');
+const { createNotification } = require('./controllers/notificationController');
 
 const app = express();
 const server = http.createServer(app);
@@ -99,6 +102,45 @@ mongoose.connect(MONGO_URI)
     const dbHost = mongoose.connection.host;
     console.log(`Connected to MongoDB: ${dbHost}`);
     seedCategories();
+
+    // Scheduled publishing loop (runs every 30s)
+    const publishScheduled = async () => {
+      try {
+        const now = new Date();
+        const due = await Post.find({
+          status: 'draft',
+          scheduledAt: { $ne: null, $lte: now }
+        }).limit(50);
+
+        if (due.length === 0) return;
+
+        for (const post of due) {
+          post.status = 'published';
+          post.publishedAt = new Date();
+          post.scheduledAt = null;
+          await post.save();
+
+          // Notify followers (same behavior as manual publish)
+          const author = await User.findById(post.author).select('followers').lean();
+          if (author?.followers?.length) {
+            author.followers.forEach((followerId) => {
+              createNotification(io, {
+                recipient: followerId,
+                sender: post.author,
+                type: 'post',
+                post: post._id
+              });
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Scheduled publish error:', err?.message || err);
+      }
+    };
+
+    setInterval(publishScheduled, 30_000);
+    publishScheduled();
+
     server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch(err => console.error('MongoDB connection error:', err));

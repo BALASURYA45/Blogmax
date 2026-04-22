@@ -9,7 +9,7 @@ import '../App.css';
 
 type NotificationItem = {
   _id: string;
-  type: 'like' | 'comment' | 'follow';
+  type: 'like' | 'comment' | 'follow' | 'mention' | 'reaction' | 'post';
   read: boolean;
   createdAt: string;
   sender?: { username?: string; avatar?: string } | null;
@@ -143,8 +143,11 @@ const Navbar = () => {
                           <div key={n._id} className={`notification-item ${!n.read ? 'unread' : ''}`}>
                             <div className="notification-content">
                               <strong>{n.sender?.username}</strong> {
-                                n.type === 'like' ? 'liked your post' : 
-                                n.type === 'comment' ? 'commented on your post' : 
+                                n.type === 'like' ? 'liked your post' :
+                                n.type === 'comment' ? 'commented on your post' :
+                                n.type === 'mention' ? 'mentioned you in a comment' :
+                                n.type === 'reaction' ? 'reacted to your comment' :
+                                n.type === 'post' ? 'published a new post' :
                                 'started following you'
                               }
                               {n.post && (

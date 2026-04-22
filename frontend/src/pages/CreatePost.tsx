@@ -14,9 +14,16 @@ const CreatePost = () => {
   const [featuredImage, setFeaturedImage] = useState('');
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState('draft');
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState('');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [savingLocal, setSavingLocal] = useState(false);
   const navigate = useNavigate();
+  const localNowInput = (() => {
+    const d = new Date();
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+  })();
 
   // Load draft from localStorage
   useEffect(() => {
@@ -24,12 +31,16 @@ const CreatePost = () => {
     if (savedDraft) {
       const parsed = JSON.parse(savedDraft);
       const draft = parsed?.draft || parsed; // backward compatible
-      const { title, content, category, tags, featuredImage } = draft;
+      const { title, content, category, tags, featuredImage, scheduledAt } = draft;
       if (title) setTitle(title);
       if (content) setContent(content);
       if (category) setCategory(category);
       if (tags) setTags(tags);
       if (featuredImage) setFeaturedImage(featuredImage);
+      if (scheduledAt) {
+        setScheduleEnabled(true);
+        setScheduledAt(scheduledAt);
+      }
     }
   }, []);
 
@@ -37,13 +48,13 @@ const CreatePost = () => {
   useEffect(() => {
     setSavingLocal(true);
     const t = window.setTimeout(() => {
-      const draft = { title, content, category, tags, featuredImage };
+      const draft = { title, content, category, tags, featuredImage, scheduledAt: scheduleEnabled ? scheduledAt : '' };
       localStorage.setItem('post-draft', JSON.stringify({ at: new Date().toISOString(), draft }));
       setLastSaved(new Date().toLocaleTimeString());
       setSavingLocal(false);
     }, 750);
     return () => window.clearTimeout(t);
-  }, [title, content, category, tags, featuredImage]);
+  }, [title, content, category, tags, featuredImage, scheduleEnabled, scheduledAt]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -102,7 +113,8 @@ const CreatePost = () => {
         category,
         tags: tags.split(',').map(t => t.trim()).filter(t => t !== ''),
         status,
-        featuredImage
+        featuredImage,
+        scheduledAt: scheduleEnabled && scheduledAt ? scheduledAt : null
       });
       localStorage.removeItem('post-draft');
       navigate('/');
@@ -245,6 +257,46 @@ const CreatePost = () => {
             <option value="draft">Draft</option>
             <option value="published">Published</option>
           </select>
+        </div>
+
+        <div className="form-group">
+          <label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '600', marginBottom: '8px', display: 'block' }}>Scheduled Publishing</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
+              Publish this draft automatically at a specific time.
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none' }}>
+              <input
+                type="checkbox"
+                checked={scheduleEnabled}
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  setScheduleEnabled(on);
+                  if (on) setStatus('draft');
+                  if (!on) setScheduledAt('');
+                }}
+              />
+              <span style={{ fontWeight: 700, fontSize: '13px' }}>Enable</span>
+            </label>
+          </div>
+
+          {scheduleEnabled && (
+            <div style={{ marginTop: '12px' }}>
+              <input
+                type="datetime-local"
+                className="form-input"
+                value={scheduledAt}
+                min={localNowInput}
+                onChange={(e) => {
+                  setScheduledAt(e.target.value);
+                  setStatus('draft');
+                }}
+              />
+              <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                This post will stay as a draft until the scheduled time, then it will publish automatically.
+              </div>
+            </div>
+          )}
         </div>
         <button type="submit" className="btn-primary" style={{ padding: '16px' }}>
           Save Post

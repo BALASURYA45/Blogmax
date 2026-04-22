@@ -16,6 +16,7 @@ const computeSnapshotHash = (postLike) => {
     category: (postLike.category && postLike.category._id ? postLike.category._id : postLike.category) || '',
     tags: Array.isArray(postLike.tags) ? postLike.tags : [],
     featuredImage: postLike.featuredImage || '',
+    scheduledAt: postLike.scheduledAt ? new Date(postLike.scheduledAt).toISOString() : '',
     status: postLike.status || 'draft'
   };
   return crypto.createHash('sha1').update(JSON.stringify(normalized)).digest('hex');
@@ -49,6 +50,7 @@ const createRevisionSnapshot = async ({ post, userId, reason }) => {
     category: post.category,
     tags: post.tags || [],
     featuredImage: post.featuredImage || '',
+    scheduledAt: post.scheduledAt || null,
     status: post.status || 'draft'
   });
 
@@ -71,7 +73,7 @@ const createRevisionSnapshot = async ({ post, userId, reason }) => {
 const computeTrendingScore = (post, nowMs) => {
   const views = post.views || 0;
   const likesCount = post.likes?.length || 0;
-  const createdAtMs = new Date(post.createdAt).getTime();
+  const createdAtMs = new Date(post.publishedAt || post.createdAt).getTime();
   const hoursSince = Math.max(0, (nowMs - createdAtMs) / (1000 * 60 * 60));
 
   // Engagement with time decay (tunable, simple, fast).
@@ -82,6 +84,7 @@ const computeTrendingScore = (post, nowMs) => {
 const createPost = async (req, res) => {
   try {
     const { title, content, category, tags, status, excerpt, featuredImage } = req.body;
+    const { scheduledAt } = req.body;
     const slug = title.toLowerCase().split(' ').join('-') + '-' + Date.now();
     
     let categoryId = category;
@@ -110,7 +113,9 @@ const createPost = async (req, res) => {
       tags,
       status,
       excerpt,
-      featuredImage
+      featuredImage,
+      scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+      publishedAt: status === 'published' ? new Date() : null
     });
 
     await post.save();
@@ -118,8 +123,8 @@ const createPost = async (req, res) => {
     // Seed first revision snapshot (initial state) for version history on first edit.
     await createRevisionSnapshot({ post, userId: req.user._id, reason: 'manual' });
 
-    // Notify followers if published
-    if (status === 'published') {
+    // Notify followers if published immediately
+    if (status === 'published' && !scheduledAt) {
       const user = await User.findById(req.user._id);
       if (user && user.followers.length > 0) {
         const io = req.app.get('io');
@@ -247,6 +252,15 @@ const updatePost = async (req, res) => {
 
     const updateData = { ...req.body };
 
+    // Scheduled publishing support
+    if (updateData.scheduledAt) {
+      updateData.scheduledAt = new Date(updateData.scheduledAt);
+    }
+    if (updateData.status === 'published') {
+      updateData.publishedAt = post.publishedAt || new Date();
+      updateData.scheduledAt = null;
+    }
+
     if (updateData.category) {
       const mongoose = require('mongoose');
       if (!mongoose.Types.ObjectId.isValid(updateData.category)) {
@@ -265,7 +279,7 @@ const updatePost = async (req, res) => {
     const oldStatus = post.status;
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, updateData, { new: true });
 
-    // Notify followers if status changed from draft to published
+    // Notify followers if status changed from draft to published (manual publish)
     if (oldStatus === 'draft' && updatedPost.status === 'published') {
       const user = await User.findById(req.user._id);
       if (user && user.followers.length > 0) {
@@ -296,7 +310,7 @@ const autosavePost = async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    const allowedFields = ['title', 'content', 'excerpt', 'category', 'tags', 'featuredImage'];
+    const allowedFields = ['title', 'content', 'excerpt', 'category', 'tags', 'featuredImage', 'scheduledAt'];
     const updates = {};
     for (const key of allowedFields) {
       if (req.body[key] !== undefined) updates[key] = req.body[key];
@@ -321,6 +335,10 @@ const autosavePost = async (req, res) => {
         }
         updates.category = cat._id;
       }
+    }
+
+    if (updates.scheduledAt) {
+      updates.scheduledAt = new Date(updates.scheduledAt);
     }
 
     const hasChange = Object.keys(updates).some((k) => {
@@ -395,7 +413,9 @@ const restoreRevision = async (req, res) => {
     post.category = rev.category;
     post.tags = rev.tags || [];
     post.featuredImage = rev.featuredImage || '';
+    post.scheduledAt = rev.scheduledAt || null;
     post.status = rev.status || post.status;
+    if (post.status === 'published' && !post.publishedAt) post.publishedAt = new Date();
     await post.save();
 
     res.json(post);

@@ -24,6 +24,11 @@ const Navbar = () => {
   const location = useLocation();
   const unreadCount = notifications.filter(n => !n.read).length;
   const nextPath = `${location.pathname}${location.search}`;
+  const socketBaseUrl =
+    import.meta.env.VITE_SOCKET_URL ||
+    (import.meta.env.VITE_API_BASE_URL
+      ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '')
+      : (import.meta.env.DEV ? 'http://localhost:5000' : 'https://blogmax-k21q.onrender.com'));
 
   useEffect(() => {
     if (!user) return;
@@ -40,7 +45,7 @@ const Navbar = () => {
     fetchNotifications();
 
     // Socket.io connection
-    const socket = io('http://localhost:5000'); // Use your backend URL
+    const socket = io(socketBaseUrl); // Use your backend URL
     socket.emit('join', user.id || user._id);
 
     socket.on('notification', (notification: NotificationItem) => {

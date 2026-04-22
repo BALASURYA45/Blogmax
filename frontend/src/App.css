@@ -104,6 +104,14 @@ body {
 }
 
 /* Navbar is always black: force high-contrast controls even in white theme */
+.navbar .nav-logo {
+  background: linear-gradient(90deg, #fbbf24 0%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
 .navbar .nav-links a {
   color: rgba(255, 255, 255, 0.86);
 }

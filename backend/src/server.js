@@ -18,9 +18,14 @@ const Category = require('./models/Category');
 
 const app = express();
 const server = http.createServer(app);
+const corsOrigins = (process.env.CORS_ORIGIN || '*')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+const corsOriginOption = corsOrigins.includes('*') ? '*' : corsOrigins;
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: corsOriginOption,
     methods: ["GET", "POST"]
   }
 });
@@ -67,7 +72,7 @@ io.on('connection', (socket) => {
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: corsOriginOption }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 

@@ -189,7 +189,7 @@ const Home = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
                 <h2 style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-1px', color: 'var(--text-color)' }}>For You</h2>
                 <Link to="/latest" style={{ color: 'var(--primary-bright)', fontWeight: 700, fontSize: '14px' }}>
-                  Explore â†’
+                  Explore {'\u2192'}
                 </Link>
               </div>
               <div className="posts-grid">
@@ -230,7 +230,7 @@ const Home = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
                 <h2 style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-1px', color: 'var(--text-color)' }}>Trending</h2>
                 <Link to="/featured" style={{ color: 'var(--primary-bright)', fontWeight: 700, fontSize: '14px' }}>
-                  See more â†’
+                  See more {'\u2192'}
                 </Link>
               </div>
               <div className="posts-grid">

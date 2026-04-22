@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { Bell, Home as HomeIcon, LogOut, Moon, Plus, Settings, Sun, User as UserIcon } from 'lucide-react';
+import { Bell, Home as HomeIcon, LogIn, LogOut, Moon, Plus, Settings, Sun, User as UserIcon, UserPlus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
@@ -105,8 +105,24 @@ const Navbar = () => {
               >
                 <Plus size={18} />
               </Link>
-              <Link to={`/login?next=${encodeURIComponent(nextPath)}`}>Login</Link>
-              <Link to={`/register?next=${encodeURIComponent(nextPath)}`}>Sign Up</Link>
+              <Link to={`/login?next=${encodeURIComponent(nextPath)}`} className="nav-text-link">Login</Link>
+              <Link to={`/register?next=${encodeURIComponent(nextPath)}`} className="nav-text-link">Sign Up</Link>
+              <Link
+                to={`/login?next=${encodeURIComponent(nextPath)}`}
+                className="nav-icon-btn nav-icon-btn--premium nav-auth-icon"
+                title="Login"
+                aria-label="Login"
+              >
+                <LogIn size={18} />
+              </Link>
+              <Link
+                to={`/register?next=${encodeURIComponent(nextPath)}`}
+                className="nav-icon-btn nav-icon-btn--premium nav-auth-icon"
+                title="Sign up"
+                aria-label="Sign up"
+              >
+                <UserPlus size={18} />
+              </Link>
             </>
           ) : (
             <div className="auth-actions">

@@ -208,10 +208,26 @@ body {
 
   .nav-links {
     gap: 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .nav-links::-webkit-scrollbar {
+    display: none;
   }
 
   .auth-actions {
     gap: 12px;
+    flex-wrap: nowrap;
+  }
+
+  .nav-text-link {
+    display: none;
+  }
+
+  .nav-auth-icon {
+    display: inline-flex;
   }
 
   .nav-icon-btn {
@@ -305,6 +321,9 @@ body {
   display: flex;
   align-items: center;
   gap: 32px; /* Proper space between home, login, signup */
+  flex: 1;
+  justify-content: flex-end;
+  min-width: 0;
 }
 
 .nav-links a {
@@ -322,6 +341,14 @@ body {
   display: flex;
   align-items: center;
   gap: 24px;
+}
+
+.nav-auth-icon {
+  display: none;
+}
+
+.nav-text-link {
+  white-space: nowrap;
 }
 
 /* Auth Redesign */
@@ -741,6 +768,13 @@ select.form-input option {
   margin-bottom: 30px;
 }
 
+@media (max-width: 640px) {
+  .featured-img-wrapper {
+    height: 260px;
+    border-radius: 18px;
+  }
+}
+
 .featured-img {
   width: 100%;
   height: 100%;
@@ -759,6 +793,15 @@ select.form-input option {
   border: 1px solid var(--glass-border);
 }
 
+@media (max-width: 640px) {
+  .featured-post {
+    padding: 18px;
+    border-radius: 26px;
+    margin-bottom: 48px;
+    gap: 26px;
+  }
+}
+
 /* Post Detail Styles */
 .post-detail-header {
   position: relative;
@@ -769,6 +812,14 @@ select.form-input option {
   display: flex;
   align-items: center;
   margin-bottom: 60px;
+}
+
+@media (max-width: 640px) {
+  .post-detail-header {
+    height: 52vh;
+    min-height: 320px;
+    margin-bottom: 28px;
+  }
 }
 
 .header-bg-img {
@@ -1252,6 +1303,11 @@ select.form-input option {
 
   .post-img-wrapper {
     height: 180px;
+  }
+
+  .comment-reaction-btn {
+    height: 32px;
+    padding: 0 10px;
   }
 }
 
